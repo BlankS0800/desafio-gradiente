@@ -147,3 +147,4 @@ Luego ingrese a `http://localhost:8080`.
 2. **Golub, G. H., & Van Loan, C. F. (2013).** *Matrix Computations* (4th ed.). Johns Hopkins University Press.
 3. **Saad, Y. (2003).** *Iterative Methods for Sparse Linear Systems* (2nd ed.). Society for Industrial and Applied Mathematics (SIAM).
 4. **Markowitz, H. (1952).** *Portfolio Selection*. The Journal of Finance, 7(1), 77–91.
+

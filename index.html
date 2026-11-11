@@ -15,6 +15,12 @@
   
   <!-- Chart.js para visualización de convergencia -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- KaTeX para renderizado de fórmulas matemáticas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
 </head>
 <body>
 
@@ -23,28 +29,25 @@
     <div class="nav-brand">
       <div class="brand-logo">GCP</div>
       <div class="brand-text">
-        <h1>Gradientes Conjugados Precondicionado</h1>
+        <h1>GCP Finanzas</h1>
         <p>UMSA · Informática · Métodos Numéricos</p>
       </div>
     </div>
 
     <div class="nav-menu">
       <a href="#inicio">Inicio</a>
-      <a href="#caso-estudio">Caso Financiero</a>
+      <a href="#caso-estudio">Modelo</a>
       <a href="#formulacion">Formulación</a>
       <a href="#escenarios">3 Escenarios</a>
-      <a href="#solucion-referencia">Solución Referencia</a>
+      <a href="#solucion-referencia">Cholesky</a>
       <a href="#gcp-vs-gc">GCP vs GC</a>
       <a href="#analisis-errores">Errores</a>
       <a href="#tabla-comparativa">Comparativa</a>
-      <a href="#modulo-qa">Módulo QA</a>
+      <a href="#modulo-qa">Pruebas QA</a>
       <a href="#conclusiones">Conclusiones</a>
     </div>
 
     <div class="nav-actions">
-      <button id="btn-export-pdf" class="btn btn-outline btn-sm" title="Imprimir o Exportar a PDF">
-        📄 Exportar PDF
-      </button>
       <button id="btn-toggle-theme" class="btn-icon" title="Alternar Modo Oscuro / Claro">
         <span id="theme-icon">🌙</span>
       </button>
@@ -191,9 +194,9 @@
           <div class="card-icon">⚡</div>
           <h2>4 y 5. Tres Escenarios Obligatorios y Editor Interactivo de Datos</h2>
         </div>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button id="btn-reset-scenario" class="btn btn-outline btn-sm">↺ Restaurar Escenario</button>
-          <button id="btn-solve-system" class="btn btn-primary btn-sm">▶ Resolver Sistema</button>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <span class="badge badge-success">⚡ Recálculo Automático en Vivo</span>
+          <button id="btn-reset-scenario" class="btn btn-outline btn-sm">↺ Restaurar Valores</button>
         </div>
       </div>
 
@@ -308,9 +311,12 @@
       </div>
 
       <div class="math-formula-box">
-        <strong>Algoritmo de Suñagua (2020):</strong> 
-        $r_0 = b - Ax_0, \quad Mz_0 = r_0, \quad p_0 = z_0$ <br>
-        Iteración $k$: $\alpha_k = \frac{r_k^T z_k}{p_k^T A p_k}, \quad x_{k+1} = x_k + \alpha_k p_k, \quad r_{k+1} = r_k - \alpha_k A p_k, \quad M z_{k+1} = r_{k+1}, \quad \beta_k = \frac{r_{k+1}^T z_{k+1}}{r_k^T z_k}, \quad p_{k+1} = z_{k+1} + \beta_k p_k$
+        <strong>Algoritmo de Suñagua (2020) — Formulación Matemática:</strong><br>
+        <div style="margin-top: 0.5rem; line-height: 1.8;">
+          $$r_0 = b - Ax_0, \quad Mz_0 = r_0, \quad p_0 = z_0$$
+          $$\alpha_k = \frac{r_k^T z_k}{p_k^T A p_k}, \quad x_{k+1} = x_k + \alpha_k p_k, \quad r_{k+1} = r_k - \alpha_k A p_k$$
+          $$M z_{k+1} = r_{k+1}, \quad \beta_k = \frac{r_{k+1}^T z_{k+1}}{r_k^T z_k}, \quad p_{k+1} = z_{k+1} + \beta_k p_k$$
+        </div>
       </div>
 
       <div id="gcp-results-container"></div>
@@ -353,7 +359,7 @@
           <div class="card-icon">📋</div>
           <h2>9. Tabla Comparativa Obligatoria de los Tres Escenarios</h2>
         </div>
-        <button id="btn-refresh-comparative" class="btn btn-outline btn-sm">↺ Actualizar Comparativa</button>
+        <span class="badge badge-primary">✓ 3 Escenarios Integrados</span>
       </div>
 
       <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem;">
@@ -476,3 +482,4 @@
   <script src="js/app.js"></script>
 </body>
 </html>
+

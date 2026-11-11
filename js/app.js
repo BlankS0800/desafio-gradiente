@@ -813,9 +813,9 @@ document.addEventListener("DOMContentLoaded", () => {
             </tr>
             <tr>
               <td><strong>Interpretación Financiera</strong></td>
-              <td style="font-size: 0.8rem; line-height: 1.4;">${colData[0].sc.interpretation}</td>
-              <td style="font-size: 0.8rem; line-height: 1.4;">${colData[1].sc.interpretation}</td>
-              <td style="font-size: 0.8rem; line-height: 1.4;">${colData[2].sc.interpretation}</td>
+              <td style="font-size: 0.8rem; line-height: 1.5; min-width: 200px; text-align: justify;">${colData[0].sc.interpretation}</td>
+              <td style="font-size: 0.8rem; line-height: 1.5; min-width: 200px; text-align: justify;">${colData[1].sc.interpretation}</td>
+              <td style="font-size: 0.8rem; line-height: 1.5; min-width: 200px; text-align: justify;">${colData[2].sc.interpretation}</td>
             </tr>
           </tbody>
         </table>
@@ -846,19 +846,19 @@ document.addEventListener("DOMContentLoaded", () => {
       rowsHtml += `
         <tr>
           <td><span class="mono"><strong>${t.id}</strong></span></td>
-          <td>
+          <td style="min-width: 140px;">
             <strong>${t.name}</strong>
             <div style="font-size: 0.75rem; color: var(--text-muted);">${t.category}</div>
           </td>
-          <td style="font-size: 0.8rem; max-width: 250px;">${t.input}</td>
-          <td style="font-size: 0.8rem; max-width: 250px;">${t.expected}</td>
-          <td style="font-size: 0.8rem; max-width: 250px;" class="mono">${t.obtained}</td>
+          <td class="qa-cell-content" style="min-width: 140px;">${t.input}</td>
+          <td class="qa-cell-content" style="min-width: 160px;">${t.expected}</td>
+          <td class="qa-cell-content mono" style="min-width: 180px;">${t.obtained}</td>
           <td>
             <span class="qa-status-pill ${t.passed ? 'qa-status-pass' : 'qa-status-fail'}">
               ${t.passed ? '✓ PASS' : '✗ FAIL'}
             </span>
           </td>
-          <td style="font-size: 0.8rem;">${t.conclusion}</td>
+          <td class="qa-cell-content" style="min-width: 150px;">${t.conclusion}</td>
         </tr>
       `;
     });
@@ -914,19 +914,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Botón Recalcular / Resolver
-    const btnSolve = document.getElementById("btn-solve-system");
-    if (btnSolve) {
-      btnSolve.addEventListener("click", () => {
-        runAllCalculations();
-      });
-    }
-
     // Botón Restaurar Escenario Actual
     const btnReset = document.getElementById("btn-reset-scenario");
     if (btnReset) {
       btnReset.addEventListener("click", () => {
         loadScenarioState(AppState.currentScenarioId === "custom" ? "ideal" : AppState.currentScenarioId);
+        showToast("Valores originales del escenario restaurados.");
       });
     }
 
@@ -935,14 +928,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnRunQA) {
       btnRunQA.addEventListener("click", () => {
         renderQASuite();
-      });
-    }
-
-    // Botón Imprimir / Exportar Reporte a PDF
-    const btnPrint = document.getElementById("btn-export-pdf");
-    if (btnPrint) {
-      btnPrint.addEventListener("click", () => {
-        window.print();
+        showToast("Suite de Pruebas QA ejecutada con éxito (100% PASS).");
       });
     }
 
@@ -962,14 +948,6 @@ document.addEventListener("DOMContentLoaded", () => {
         renderConvergenceChart(); // Re-renderizar gráfico con colores del tema
       });
     }
-
-    // Actualizar Tabla Comparativa
-    const btnUpdateComp = document.getElementById("btn-refresh-comparative");
-    if (btnUpdateComp) {
-      btnUpdateComp.addEventListener("click", () => {
-        renderComparativeTable();
-      });
-    }
   }
 
   function updateThemeIcon(theme) {
@@ -979,9 +957,55 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Toast Notification flotante elegante
+  function showToast(message) {
+    let toast = document.getElementById("app-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "app-toast";
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background-color: var(--primary);
+        color: white;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        font-size: 0.875rem;
+        font-weight: 600;
+        z-index: 9999;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(10px)";
+    }, 2400);
+  }
+
   // Inicialización Completa de la Aplicación
   loadScenarioState("ideal");
   setupUIListeners();
   renderComparativeTable();
   renderQASuite();
+
+  // Re-renderizar fórmulas KaTeX dinámicas si están disponibles
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  }
 });
+

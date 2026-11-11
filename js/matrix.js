@@ -348,3 +348,4 @@ const MatrixMath = {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = MatrixMath;
 }
+
