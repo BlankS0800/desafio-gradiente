@@ -4,22 +4,19 @@
  * Formato estándar de Control de Calidad: Entrada, Resultado Esperado, Resultado Obtenido, Conclusión.
  */
 
-let MatrixMathQA;
-if (typeof window !== 'undefined' && window.MatrixMath) MatrixMathQA = window.MatrixMath;
-else if (typeof require !== 'undefined') MatrixMathQA = require('./matrix.js');
-else MatrixMathQA = globalThis.MatrixMath;
+var MatrixMathQA = (typeof window !== 'undefined' && window.MatrixMath) ? window.MatrixMath :
+                   (typeof MatrixMath !== 'undefined') ? MatrixMath :
+                   (typeof require !== 'undefined') ? require('./matrix.js') : globalThis.MatrixMath;
 
-let NumericalSolversQA;
-if (typeof window !== 'undefined' && window.NumericalSolvers) NumericalSolversQA = window.NumericalSolvers;
-else if (typeof require !== 'undefined') NumericalSolversQA = require('./algorithms.js');
-else NumericalSolversQA = globalThis.NumericalSolvers;
+var NumericalSolversQA = (typeof window !== 'undefined' && window.NumericalSolvers) ? window.NumericalSolvers :
+                         (typeof NumericalSolvers !== 'undefined') ? NumericalSolvers :
+                         (typeof require !== 'undefined') ? require('./algorithms.js') : globalThis.NumericalSolvers;
 
-let FinancialScenariosQA;
-if (typeof window !== 'undefined' && window.FinancialScenarios) FinancialScenariosQA = window.FinancialScenarios;
-else if (typeof require !== 'undefined') FinancialScenariosQA = require('./scenarios.js');
-else FinancialScenariosQA = globalThis.FinancialScenarios;
+var FinancialScenariosQA = (typeof window !== 'undefined' && window.FinancialScenarios) ? window.FinancialScenarios :
+                           (typeof FinancialScenarios !== 'undefined') ? FinancialScenarios :
+                           (typeof require !== 'undefined') ? require('./scenarios.js') : globalThis.FinancialScenarios;
 
-const QATestSuite = {
+var QATestSuite = {
   tests: [
     {
       id: "TC-01",
@@ -274,6 +271,9 @@ const QATestSuite = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.QATestSuite = QATestSuite;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = QATestSuite;
 }

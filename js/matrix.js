@@ -5,7 +5,7 @@
  * Desarrollado para el Desafío Académico de Métodos Numéricos - UMSA
  */
 
-const MatrixMath = {
+var MatrixMath = {
   // --- Operaciones Vectoriales Básicas ---
   dot(u, v) {
     let s = 0;
@@ -345,6 +345,9 @@ const MatrixMath = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.MatrixMath = MatrixMath;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = MatrixMath;
 }

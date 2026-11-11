@@ -13,14 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   
-  <!-- Chart.js para visualización de convergencia -->
+  <!-- Chart.js para visualización de convergencia (con respaldo SVG integrado offline) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  
-  <!-- KaTeX para renderizado de fórmulas matemáticas -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-          onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
 </head>
 <body>
 
@@ -115,10 +109,18 @@
             sujeto a metas de retorno y penalizaciones de riesgo cuadráticas:
           </p>
           <div class="math-formula-box">
-            $$\min_{x} \frac{1}{2} x^T \Sigma x - \mu^T x + \frac{\gamma}{2} \|x\|_2^2 \implies (\Sigma + \gamma I) x = \mu$$
+            <div class="math-expr">
+              <span class="math-op">mín</span><sub>x</sub>
+              <span class="math-frac"><span class="num">1</span><span class="den">2</span></span>
+              x<sup>T</sup> Σ x − μ<sup>T</sup> x +
+              <span class="math-frac"><span class="num">γ</span><span class="den">2</span></span>
+              ‖x‖<sub>2</sub><sup>2</sup>
+              <span class="math-op" style="margin: 0 0.5rem;">⟹</span>
+              <strong>(Σ + γI) x = μ</strong>
+            </div>
           </div>
           <p style="font-size: 0.95rem; color: var(--text-muted); text-align: justify;">
-            La condición de primer orden de optimalidad (anulación del gradiente $\nabla f(x) = 0$) genera el sistema lineal 
+            La condición de primer orden de optimalidad (anulación del gradiente <strong>∇f(x) = 0</strong>) genera el sistema lineal 
             <strong>Ax = b</strong>, donde <strong>A = Σ + γI</strong> es la matriz de covarianza y riesgo marginal regularizada, 
             y <strong>b = μ</strong> es el vector de rendimientos o flujos netos requeridos.
           </p>
@@ -130,8 +132,8 @@
             Los coeficientes provienen de la matriz empírica de covarianzas de series temporales de rendimientos financieros:
           </p>
           <ul style="font-size: 0.9rem; color: var(--text-muted); margin-left: 1.5rem; line-height: 1.8;">
-            <li><strong>Términos Diagonales (a_ii):</strong> Varianza de retorno del activo <em>i</em> más regularización de liquidez $\sigma_i^2 + \gamma$.</li>
-            <li><strong>Términos Fuera de la Diagonal (a_ij):</strong> Covarianza cruzada $\text{Cov}(R_i, R_j) = \rho_{ij}\sigma_i\sigma_j$, representando el co-movimiento y contagio de riesgo sistémico.</li>
+            <li><strong>Términos Diagonales (a<sub>ii</sub>):</strong> Varianza de retorno del activo <em>i</em> más regularización de liquidez (<strong>σ<sub>i</sub><sup>2</sup> + γ</strong>).</li>
+            <li><strong>Términos Fuera de la Diagonal (a<sub>ij</sub>):</strong> Covarianza cruzada <strong>Cov(R<sub>i</sub>, R<sub>j</sub>) = ρ<sub>ij</sub> σ<sub>i</sub> σ<sub>j</sub></strong>, representando el co-movimiento y contagio de riesgo sistémico.</li>
             <li><strong>Vector b:</strong> Flujos de caja o rendimientos objetivo de los inversionistas institucionales (en Millones de USD).</li>
           </ul>
         </div>
@@ -176,15 +178,18 @@
         <div class="alert-content">
           <h4>Demostración Formal de Propiedades de A</h4>
           <p>
-            <strong>1. Simetría (A = Aᵀ):</strong> Puesto que la covarianza es conmutativa $\text{Cov}(R_i, R_j) = \text{Cov}(R_j, R_i)$, 
-            se cumple rigurosamente que $a_{ij} = a_{ji}$ para todo $i \neq j$.<br>
-            <strong>2. Estrictamente Definida Positiva (xᵀAx > 0, ∀x ≠ 0):</strong> Para toda cartera con asignaciones no nulas $x \neq 0$, 
-            la varianza de cartera es estrictamente positiva: $x^T \Sigma x = \text{Var}(x^T R) \ge 0$, y con la regularización $\gamma > 0$, 
-            $x^T A x = x^T \Sigma x + \gamma \|x\|_2^2 > 0$.<br>
-            <strong>3. Criterio de Sylvester:</strong> Todos los determinantes de los menores principales conductores son estrictamente positivos ($\Delta_1 > 0, \Delta_2 > 0, \dots, \Delta_n > 0$).
+            <strong>1. Simetría (A = A<sup>T</sup>):</strong> Puesto que la covarianza es conmutativa <strong>Cov(R<sub>i</sub>, R<sub>j</sub>) = Cov(R<sub>j</sub>, R<sub>i</sub>)</strong>, 
+            se cumple rigurosamente que <strong>a<sub>ij</sub> = a<sub>ji</sub></strong> para todo <em>i ≠ j</em>.<br>
+            <strong>2. Estrictamente Definida Positiva (x<sup>T</sup>Ax &gt; 0, ∀x ≠ 0):</strong> Para toda cartera con asignaciones no nulas <em>x ≠ 0</em>, 
+            la varianza de cartera es no negativa: <strong>x<sup>T</sup>Σx = Var(x<sup>T</sup>R) ≥ 0</strong>, y con la regularización <em>γ &gt; 0</em>, 
+            se cumple estrictamente que <strong>x<sup>T</sup>Ax = x<sup>T</sup>Σx + γ‖x‖<sub>2</sub><sup>2</sup> &gt; 0</strong>.<br>
+            <strong>3. Criterio de Sylvester:</strong> Todos los determinantes de los menores principales conductores son estrictamente positivos (<strong>Δ<sub>1</sub> &gt; 0, Δ<sub>2</sub> &gt; 0, …, Δ<sub>n</sub> &gt; 0</strong>).
           </p>
         </div>
       </div>
+
+      <!-- Contenedor Dinámico del Sistema de Ecuaciones Explícito y Demostración SPD -->
+      <div id="dynamic-system-equations" style="margin-top: 1.25rem;"></div>
     </section>
 
     <!-- 4 y 5. Tres Escenarios y Entrada Interactiva de Datos -->
@@ -194,9 +199,10 @@
           <div class="card-icon">⚡</div>
           <h2>4 y 5. Tres Escenarios Obligatorios y Editor Interactivo de Datos</h2>
         </div>
-        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
           <span class="badge badge-success">⚡ Recálculo Automático en Vivo</span>
-          <button id="btn-reset-scenario" class="btn btn-outline btn-sm">↺ Restaurar Valores</button>
+          <button id="btn-test-invalid" class="btn btn-outline btn-sm" title="Introduce una matriz no válida para verificar la captura de error">🧪 Simular Matriz No Válida</button>
+          <button id="btn-reset-scenario" class="btn btn-primary btn-sm">↺ Restaurar Escenario</button>
         </div>
       </div>
 
@@ -312,10 +318,23 @@
 
       <div class="math-formula-box">
         <strong>Algoritmo de Suñagua (2020) — Formulación Matemática:</strong><br>
-        <div style="margin-top: 0.5rem; line-height: 1.8;">
-          $$r_0 = b - Ax_0, \quad Mz_0 = r_0, \quad p_0 = z_0$$
-          $$\alpha_k = \frac{r_k^T z_k}{p_k^T A p_k}, \quad x_{k+1} = x_k + \alpha_k p_k, \quad r_{k+1} = r_k - \alpha_k A p_k$$
-          $$M z_{k+1} = r_{k+1}, \quad \beta_k = \frac{r_{k+1}^T z_{k+1}}{r_k^T z_k}, \quad p_{k+1} = z_{k+1} + \beta_k p_k$$
+        <div style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.6rem;">
+          <div class="math-expr">
+            <span class="math-op"><strong>Inicialización:</strong></span> &nbsp;
+            r<sub>0</sub> = b − Ax<sub>0</sub>, &emsp; Mz<sub>0</sub> = r<sub>0</sub>, &emsp; p<sub>0</sub> = z<sub>0</sub>
+          </div>
+          <div class="math-expr">
+            <span class="math-op"><strong>Paso k:</strong></span> &nbsp;
+            α<sub>k</sub> = <span class="math-frac"><span class="num">r<sub>k</sub><sup>T</sup> z<sub>k</sub></span><span class="den">p<sub>k</sub><sup>T</sup> A p<sub>k</sub></span></span>, &emsp;
+            x<sub>k+1</sub> = x<sub>k</sub> + α<sub>k</sub> p<sub>k</sub>, &emsp;
+            r<sub>k+1</sub> = r<sub>k</sub> − α<sub>k</sub> A p<sub>k</sub>
+          </div>
+          <div class="math-expr">
+            <span class="math-op"><strong>Dirección:</strong></span> &nbsp;
+            M z<sub>k+1</sub> = r<sub>k+1</sub>, &emsp;
+            β<sub>k</sub> = <span class="math-frac"><span class="num">r<sub>k+1</sub><sup>T</sup> z<sub>k+1</sub></span><span class="den">r<sub>k</sub><sup>T</sup> z<sub>k</sub></span></span>, &emsp;
+            p<sub>k+1</sub> = z<sub>k+1</sub> + β<sub>k</sub> p<sub>k</sub>
+          </div>
         </div>
       </div>
 
@@ -344,9 +363,10 @@
       </div>
 
       <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-        Evaluación de precisión componente a componente respecto a la solución exacta de referencia <em>x_ref</em>:
-        Error absoluto $E_{a,i} = |x_{ref,i} - x_{GCP,i}|$, Error relativo $E_{r,i} = E_{a,i}/|x_{ref,i}|$ y 
-        Error porcentual $E_{p,i} = E_{r,i} \times 100\%$.
+        Evaluación de precisión componente a componente respecto a la solución exacta de referencia <em>x<sub>ref</sub></em>:
+        Error absoluto <strong>E<sub>a,i</sub> = |x<sub>ref,i</sub> − x<sub>GCP,i</sub>|</strong>,
+        Error relativo <strong>E<sub>r,i</sub> = E<sub>a,i</sub> / |x<sub>ref,i</sub>|</strong> y 
+        Error porcentual <strong>E<sub>p,i</sub> = E<sub>r,i</sub> × 100%</strong>.
       </p>
 
       <div id="error-analysis-container"></div>

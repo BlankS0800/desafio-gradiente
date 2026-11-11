@@ -5,17 +5,11 @@
  * Revista Boliviana de Matemática - UMSA, 2020.
  */
 
-let MM;
-if (typeof window !== 'undefined' && window.MatrixMath) {
-  MM = window.MatrixMath;
-} else if (typeof require !== 'undefined') {
-  try { MM = require('./matrix.js'); } catch (e) { MM = globalThis.MatrixMath; }
-} else {
-  MM = globalThis.MatrixMath;
-}
-const MatrixMath = MM;
+var MatrixMath = (typeof window !== 'undefined' && window.MatrixMath) ? window.MatrixMath :
+                 (typeof MatrixMath !== 'undefined') ? MatrixMath :
+                 (typeof require !== 'undefined') ? require('./matrix.js') : globalThis.MatrixMath;
 
-const NumericalSolvers = {
+var NumericalSolvers = {
   // --- Constructores de Precondicionadores ---
 
   /**
@@ -410,6 +404,9 @@ const NumericalSolvers = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.NumericalSolvers = NumericalSolvers;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = NumericalSolvers;
 }

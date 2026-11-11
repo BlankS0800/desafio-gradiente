@@ -191,10 +191,11 @@ document.addEventListener("DOMContentLoaded", () => {
     AppState.sylvCheck = MatrixMath.checkSylvester(A);
     AppState.condA = MatrixMath.conditionNumber(A);
 
+    renderSystemFormulation();
     renderValidationFeedback();
 
     if (!AppState.symCheck.isSymmetric || !AppState.sylvCheck.isPositiveDefinite) {
-      renderErrorState("La matriz A no cumple con las restricciones exigidas (Simétrica y Definida Positiva). Corrija los coeficientes o utilice el botón 'Forzar Simetría'.");
+      renderErrorState("La matriz A introducida no cumple las restricciones exigidas (Simétrica y Estrictamente Definida Positiva). Corrija los coeficientes, presione 'Forzar Simetría' o haga clic en 'Restaurar Escenario'.");
       return;
     }
 
@@ -237,6 +238,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Renderizar Sistema Explícito de Ecuaciones y Verificación Formal SPD en la Sección 3
+  function renderSystemFormulation() {
+    const el = document.getElementById("dynamic-system-equations");
+    if (!el) return;
+
+    const n = AppState.n;
+    const A = AppState.A;
+    const b = AppState.b;
+    const sylv = AppState.sylvCheck;
+    const cond = AppState.condA;
+
+    let eqLines = "";
+    for (let i = 0; i < n; i++) {
+      const terms = [];
+      for (let j = 0; j < n; j++) {
+        const val = A[i][j];
+        const sign = j === 0 ? (val < 0 ? "−" : "") : (val < 0 ? " − " : " + ");
+        terms.push(`${sign}${Math.abs(val).toFixed(2)}·x<sub>${j+1}</sub>`);
+      }
+      eqLines += `<div><strong>Ecuación ${i+1}:</strong> &nbsp; ${terms.join("")} = <strong>${b[i].toFixed(2)}</strong></div>`;
+    }
+
+    const eigsStr = (cond.eigenvalues || []).map((v, idx) => `λ<sub>${idx+1}</sub> = ${v > 1e4 ? v.toExponential(2) : v.toFixed(3)}`).join(" &nbsp;|&nbsp; ");
+    const sylvStr = sylv.minors.map(m => `Δ<sub>${m.k}</sub> = ${Math.abs(m.det) > 1e4 ? m.det.toExponential(2) : m.det.toFixed(2)} ${m.det > 0 ? '(&gt; 0 ✓)' : '(≤ 0 ✗)'}`).join(" &nbsp;|&nbsp; ");
+
+    el.innerHTML = `
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size: 0.92rem; margin-bottom: 0.5rem; color: var(--text-main);">
+            Sistema Lineal Explícito Ax = b (Escenario Activo)
+          </h4>
+          <div class="equation-system-box">${eqLines}</div>
+        </div>
+        <div>
+          <h4 style="font-size: 0.92rem; margin-bottom: 0.5rem; color: var(--text-main);">
+            Verificación Espectral y Menores Principales (Sylvester)
+          </h4>
+          <div class="equation-system-box">
+            <div style="margin-bottom: 0.5rem;"><strong>Menores Principales Conductores:</strong><br>${sylvStr}</div>
+            <div><strong>Autovalores Espectrales de A:</strong><br>${eigsStr || 'N/A'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // Renderizar retroalimentación de validación de simetría y definición positiva
   function renderValidationFeedback() {
     const valBox = document.getElementById("matrix-validation-box");
@@ -246,25 +293,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const sylv = AppState.sylvCheck;
     const cond = AppState.condA;
 
+    const isValid = sym.isSymmetric && sylv.isPositiveDefinite;
+    valBox.className = `alert ${isValid ? 'alert-info' : 'alert-danger'}`;
+
     const symStatus = sym.isSymmetric
       ? `<span class="badge badge-success">✓ Simétrica (A = Aᵀ)</span>`
       : `<span class="badge badge-danger">✗ Asimétrica (A[${sym.i+1},${sym.j+1}]≠A[${sym.j+1},${sym.i+1}])</span>`;
 
     const spdStatus = sylv.isPositiveDefinite
       ? `<span class="badge badge-success">✓ Definida Positiva (Sylvester OK)</span>`
-      : `<span class="badge badge-danger">✗ No Definida Positiva</span>`;
+      : `<span class="badge badge-danger">✗ No Definida Positiva (Violación Sylvester)</span>`;
 
-    const minorsText = sylv.minors.map(m => `Δ${m.k} = ${m.det > 1e4 ? m.det.toExponential(2) : m.det.toFixed(2)}`).join(" | ");
+    const minorsText = sylv.minors.map(m => `Δ${m.k} = ${Math.abs(m.det) > 1e4 ? m.det.toExponential(2) : m.det.toFixed(2)}`).join(" | ");
 
     valBox.innerHTML = `
-      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem;">
-        <div>${symStatus}</div>
-        <div>${spdStatus}</div>
-        <div><span class="badge badge-info">κ(A) = ${cond.cond > 1e5 ? cond.cond.toExponential(2) : cond.cond.toFixed(2)}</span></div>
-        ${!sym.isSymmetric ? `<button id="btn-force-symmetry" class="btn btn-sm btn-outline">Forzar Simetría A = ½(A + Aᵀ)</button>` : ''}
-      </div>
-      <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
-        <strong>Menores Principales (Criterio de Sylvester):</strong> ${minorsText}
+      <div class="alert-icon">${isValid ? '✅' : '⚠️'}</div>
+      <div class="alert-content" style="width: 100%;">
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem;">
+          <div>${symStatus}</div>
+          <div>${spdStatus}</div>
+          <div><span class="badge badge-info">κ(A) = ${cond.cond > 1e5 ? cond.cond.toExponential(2) : cond.cond.toFixed(2)}</span></div>
+          ${!sym.isSymmetric ? `<button id="btn-force-symmetry" class="btn btn-sm btn-primary">🔧 Forzar Simetría A = ½(A + Aᵀ)</button>` : ''}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+          <strong>Menores Principales (Criterio de Sylvester):</strong> ${minorsText}
+        </div>
       </div>
     `;
 
@@ -281,23 +334,29 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         renderInputs();
         runAllCalculations();
+        showToast("Matriz simetrizada automáticamente: A = ½(A + Aᵀ)");
       });
     }
   }
 
   function renderErrorState(msg) {
-    const container = document.getElementById("gcp-results-container");
-    if (container) {
-      container.innerHTML = `
-        <div class="alert alert-danger">
-          <div class="alert-icon">⚠️</div>
-          <div class="alert-content">
-            <h4>Alerta de Validación Numérica</h4>
-            <p>${msg}</p>
-          </div>
+    const refContainer = document.getElementById("reference-solution-container");
+    const gcpContainer = document.getElementById("gcp-results-container");
+    const errContainer = document.getElementById("error-analysis-container");
+
+    const alertHtml = `
+      <div class="alert alert-danger">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+          <h4>Ejecución Detenida por Validación Matemática (QA Control)</h4>
+          <p>${msg}</p>
         </div>
-      `;
-    }
+      </div>
+    `;
+
+    if (refContainer) refContainer.innerHTML = alertHtml;
+    if (gcpContainer) gcpContainer.innerHTML = alertHtml;
+    if (errContainer) errContainer.innerHTML = alertHtml;
   }
 
   // Renderizar Solución Numérica de Referencia (Cholesky)
@@ -318,6 +377,20 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }
 
+    // Factor triangular inferior L de Cholesky
+    let lMatHtml = '<table class="matrix-table"><thead><tr><th>L (i\\j)</th>';
+    for (let j = 0; j < AppState.n; j++) lMatHtml += `<th>Col ${j+1}</th>`;
+    lMatHtml += '</tr></thead><tbody>';
+    for (let i = 0; i < AppState.n; i++) {
+      lMatHtml += `<tr><th>Fila ${i+1}</th>`;
+      for (let j = 0; j < AppState.n; j++) {
+        const val = ref.L[i][j];
+        lMatHtml += `<td class="mono" style="padding: 0.45rem; ${i === j ? 'font-weight:700; color:var(--secondary);' : ''}">${val.toFixed(4)}</td>`;
+      }
+      lMatHtml += '</tr>';
+    }
+    lMatHtml += '</tbody></table>';
+
     el.innerHTML = `
       <div class="stat-card-row">
         <div class="stat-card">
@@ -336,18 +409,26 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="stat-sub">Solución de Referencia</span>
         </div>
       </div>
-      <div class="data-table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Variable</th>
-              <th>Activo / Magnitud Financiera</th>
-              <th>Valor Óptimo x_ref,i</th>
-              <th>Vector Intermedio y = L⁻¹b</th>
-            </tr>
-          </thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
+      <div class="grid-2">
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Var</th>
+                <th>Activo Financiero</th>
+                <th>Solución Exacta x<sub>ref,i</sub></th>
+                <th>Vector y = L⁻¹b</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        <div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-main);">
+            Matriz Triangular Inferior L (Factorización A = LLᵀ)
+          </h4>
+          <div class="data-table-wrapper">${lMatHtml}</div>
+        </div>
       </div>
     `;
   }
@@ -665,44 +746,83 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Generador de gráfico SVG offline de respaldo
+  // Generador de gráfico SVG offline de respaldo con grilla, leyenda y puntos
   function renderSvgFallbackChart(gcpData, gcData, maxK) {
-    const width = 800;
-    const height = 300;
-    const padding = 50;
+    const width = 820;
+    const height = 340;
+    const padLeft = 65;
+    const padRight = 35;
+    const padTop = 45;
+    const padBottom = 45;
+    const plotW = width - padLeft - padRight;
+    const plotH = height - padTop - padBottom;
 
     let pointsGCP = '';
     let pointsGC = '';
+    let circlesGCP = '';
+    let circlesGC = '';
+    let gridLines = '';
+    let xTicks = '';
 
-    const minLog = -16;
+    const minLog = -18;
     const maxLog = 0;
 
+    // Líneas horizontales logarítmicas
+    for (let logV = 0; logV >= minLog; logV -= 3) {
+      const normY = (logV - minLog) / (maxLog - minLog);
+      const y = (height - padBottom) - normY * plotH;
+      gridLines += `
+        <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#cbd5e1" stroke-dasharray="3,3" stroke-width="0.8" />
+        <text x="${padLeft - 8}" y="${y + 4}" text-anchor="end" fill="#64748b" font-size="11" font-family="monospace">10^${logV}</text>
+      `;
+    }
+
+    // Línea de tolerancia 10^-6
+    const tolY = (height - padBottom) - ((-6 - minLog) / (maxLog - minLog)) * plotH;
+    gridLines += `
+      <line x1="${padLeft}" y1="${tolY}" x2="${width - padRight}" y2="${tolY}" stroke="#10b981" stroke-dasharray="4,4" stroke-width="1.5" />
+      <text x="${width - padRight - 5}" y="${tolY - 5}" text-anchor="end" fill="#10b981" font-size="11" font-weight="bold">Tol = 10⁻⁶</text>
+    `;
+
     for (let i = 0; i < maxK; i++) {
-      const x = padding + (i / Math.max(1, maxK - 1)) * (width - 2 * padding);
+      const x = padLeft + (i / Math.max(1, maxK - 1)) * plotW;
+      xTicks += `<text x="${x}" y="${height - padBottom + 18}" text-anchor="middle" fill="#64748b" font-size="11">k=${i}</text>`;
 
       if (i < gcpData.length) {
-        const logVal = Math.log10(gcpData[i]);
+        const logVal = Math.max(minLog, Math.log10(gcpData[i]));
         const normY = (logVal - minLog) / (maxLog - minLog);
-        const y = (height - padding) - normY * (height - 2 * padding);
+        const y = (height - padBottom) - normY * plotH;
         pointsGCP += `${x},${y} `;
+        circlesGCP += `<circle cx="${x}" cy="${y}" r="4.5" fill="#1a4f8a"><title>GCP k=${i}: ${gcpData[i].toExponential(3)}</title></circle>`;
       }
 
       if (i < gcData.length) {
-        const logVal = Math.log10(gcData[i]);
+        const logVal = Math.max(minLog, Math.log10(gcData[i]));
         const normY = (logVal - minLog) / (maxLog - minLog);
-        const y = (height - padding) - normY * (height - 2 * padding);
+        const y = (height - padBottom) - normY * plotH;
         pointsGC += `${x},${y} `;
+        circlesGC += `<circle cx="${x}" cy="${y}" r="3.5" fill="#ef4444"><title>GC k=${i}: ${gcData[i].toExponential(3)}</title></circle>`;
       }
     }
 
     return `
       <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" style="background: transparent;">
-        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#64748b" stroke-width="1.5" />
-        <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#64748b" stroke-width="1.5" />
-        <polyline fill="none" stroke="#1a4f8a" stroke-width="3" points="${pointsGCP.trim()}" />
+        <!-- Leyenda -->
+        <rect x="${padLeft}" y="10" width="14" height="4" fill="#1a4f8a" />
+        <text x="${padLeft + 20}" y="16" fill="#64748b" font-size="12" font-weight="bold">GCP Precondicionado</text>
+        <rect x="${padLeft + 185}" y="10" width="14" height="4" fill="#ef4444" />
+        <text x="${padLeft + 205}" y="16" fill="#64748b" font-size="12" font-weight="bold">GC Simple (Sin Precondicionar)</text>
+
+        ${gridLines}
+        <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="#64748b" stroke-width="1.5" />
+        <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="#64748b" stroke-width="1.5" />
+        <polyline fill="none" stroke="#1a4f8a" stroke-width="2.8" points="${pointsGCP.trim()}" />
         <polyline fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5" points="${pointsGC.trim()}" />
-        <text x="${width/2}" y="${height - 15}" text-anchor="middle" fill="#64748b" font-size="12">Iteraciones (k)</text>
-        <text x="15" y="${height/2}" text-anchor="middle" transform="rotate(-90 15,${height/2})" fill="#64748b" font-size="12">log10(Residuo Relativo)</text>
+        ${circlesGCP}
+        ${circlesGC}
+        ${xTicks}
+        <text x="${padLeft + plotW / 2}" y="${height - 6}" text-anchor="middle" fill="#64748b" font-size="12" font-weight="bold">Número de Iteraciones (k)</text>
+        <text x="16" y="${padTop + plotH / 2}" text-anchor="middle" transform="rotate(-90 16,${padTop + plotH / 2})" fill="#64748b" font-size="12" font-weight="bold">Residuo Relativo ||r_k||₂ / ||b||₂</text>
       </svg>
     `;
   }
@@ -914,6 +1034,24 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    // Botón Simular Matriz No Válida (Prueba QA Interactiva)
+    const btnTestInvalid = document.getElementById("btn-test-invalid");
+    if (btnTestInvalid) {
+      btnTestInvalid.addEventListener("click", () => {
+        AppState.currentScenarioId = "custom";
+        clearActiveScenarioButtons();
+        AppState.A = [
+          [ 1.0,  8.0,  2.0,  1.0],
+          [ 5.0, -2.0,  3.0,  2.0],
+          [ 2.0,  3.0, 12.0,  2.5],
+          [ 1.0,  2.0,  2.5, 15.0]
+        ];
+        renderInputs();
+        runAllCalculations();
+        showToast("Matriz no válida cargada: Asimetría y violación de Sylvester detectadas.");
+      });
+    }
+
     // Botón Restaurar Escenario Actual
     const btnReset = document.getElementById("btn-reset-scenario");
     if (btnReset) {
@@ -997,15 +1135,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupUIListeners();
   renderComparativeTable();
   renderQASuite();
-
-  // Re-renderizar fórmulas KaTeX dinámicas si están disponibles
-  if (window.renderMathInElement) {
-    window.renderMathInElement(document.body, {
-      delimiters: [
-        { left: "$$", right: "$$", display: true },
-        { left: "$", right: "$", display: false }
-      ]
-    });
-  }
 });
 

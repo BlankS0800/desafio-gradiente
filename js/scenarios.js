@@ -5,7 +5,7 @@
  * Carrera de Informática - Universidad Mayor de San Andrés (UMSA)
  */
 
-const FinancialScenarios = {
+var FinancialScenarios = {
   // Metadatos de las variables del modelo financiero
   variables: [
     {
@@ -104,6 +104,9 @@ const FinancialScenarios = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.FinancialScenarios = FinancialScenarios;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = FinancialScenarios;
 }
