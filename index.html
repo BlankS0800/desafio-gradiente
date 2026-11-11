@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Método de Gradientes Conjugados Precondicionado en Finanzas | UMSA</title>
+  
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js para visualización de convergencia -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Barra de Navegación Principal -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="brand-logo">GCP</div>
+      <div class="brand-text">
+        <h1>Gradientes Conjugados Precondicionado</h1>
+        <p>UMSA · Informática · Métodos Numéricos</p>
+      </div>
+    </div>
+
+    <div class="nav-menu">
+      <a href="#inicio">Inicio</a>
+      <a href="#caso-estudio">Caso Financiero</a>
+      <a href="#formulacion">Formulación</a>
+      <a href="#escenarios">3 Escenarios</a>
+      <a href="#solucion-referencia">Solución Referencia</a>
+      <a href="#gcp-vs-gc">GCP vs GC</a>
+      <a href="#analisis-errores">Errores</a>
+      <a href="#tabla-comparativa">Comparativa</a>
+      <a href="#modulo-qa">Módulo QA</a>
+      <a href="#conclusiones">Conclusiones</a>
+    </div>
+
+    <div class="nav-actions">
+      <button id="btn-export-pdf" class="btn btn-outline btn-sm" title="Imprimir o Exportar a PDF">
+        📄 Exportar PDF
+      </button>
+      <button id="btn-toggle-theme" class="btn-icon" title="Alternar Modo Oscuro / Claro">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Contenedor Principal -->
+  <main class="main-container">
+
+    <!-- 1. Inicio y Presentación Académica -->
+    <header id="inicio" class="hero-banner section-block">
+      <div class="academic-badge-row">
+        <span class="badge badge-primary">UMSA · FCPN</span>
+        <span class="badge badge-secondary">Carrera de Informática</span>
+        <span class="badge badge-info">Métodos Numéricos</span>
+        <span class="badge badge-warning">Tolerancia: 10⁻⁶</span>
+        <span class="badge badge-success">Modalidad Individual</span>
+      </div>
+
+      <h1 class="hero-title">
+        Aplicación del Método de Gradientes Conjugados Precondicionado en Problemas Financieros
+      </h1>
+      <p class="hero-subtitle">
+        Modelado, análisis espectral de número de condición y optimización numérica iterativa basada en el artículo científico 
+        de <strong>Porfirio Suñagua S. (2020)</strong> para la asignación óptima de carteras de inversión y gestión de riesgo 
+        bajo tres regímenes de mercado: <strong>Ideal, Estrés Financiero y Mal Condicionado</strong>.
+      </p>
+
+      <div class="academic-meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Mención Académica</div>
+          <div class="meta-value">Inteligencia Artificial y Ciencia de Datos / Sistemas</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Sistema Matricial</div>
+          <div class="meta-value">Ax = b (n ≥ 4 ecuaciones e incógnitas)</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Propiedades de A</div>
+          <div class="meta-value">Simétrica y Estrictamente Definida Positiva (SPD)</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Algoritmo Central</div>
+          <div class="meta-value">GCP (Suñagua, 2020) vs Cholesky Directo</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. Caso de Estudio Financiero -->
+    <section id="caso-estudio" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">💼</div>
+          <h2>2. Caso de Estudio: Optimización de Cartera y Asignación de Capital</h2>
+        </div>
+        <span class="badge badge-primary">Fundamentación Económica</span>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main);">Contexto y Justificación del Modelo</h3>
+          <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-muted); text-align: justify;">
+            En la teoría financiera moderna (Markowitz, Merton) y en la gestión cuantitativa de riesgos, la asignación eficiente de presupuestos 
+            y capital busca determinar las ponderaciones óptimas en <em>n</em> clases de activos interconectados, minimizando la varianza del portafolio 
+            sujeto a metas de retorno y penalizaciones de riesgo cuadráticas:
+          </p>
+          <div class="math-formula-box">
+            $$\min_{x} \frac{1}{2} x^T \Sigma x - \mu^T x + \frac{\gamma}{2} \|x\|_2^2 \implies (\Sigma + \gamma I) x = \mu$$
+          </div>
+          <p style="font-size: 0.95rem; color: var(--text-muted); text-align: justify;">
+            La condición de primer orden de optimalidad (anulación del gradiente $\nabla f(x) = 0$) genera el sistema lineal 
+            <strong>Ax = b</strong>, donde <strong>A = Σ + γI</strong> es la matriz de covarianza y riesgo marginal regularizada, 
+            y <strong>b = μ</strong> es el vector de rendimientos o flujos netos requeridos.
+          </p>
+        </div>
+
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main);">Procedencia y Dinámica de los Datos</h3>
+          <p style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-muted); text-align: justify;">
+            Los coeficientes provienen de la matriz empírica de covarianzas de series temporales de rendimientos financieros:
+          </p>
+          <ul style="font-size: 0.9rem; color: var(--text-muted); margin-left: 1.5rem; line-height: 1.8;">
+            <li><strong>Términos Diagonales (a_ii):</strong> Varianza de retorno del activo <em>i</em> más regularización de liquidez $\sigma_i^2 + \gamma$.</li>
+            <li><strong>Términos Fuera de la Diagonal (a_ij):</strong> Covarianza cruzada $\text{Cov}(R_i, R_j) = \rho_{ij}\sigma_i\sigma_j$, representando el co-movimiento y contagio de riesgo sistémico.</li>
+            <li><strong>Vector b:</strong> Flujos de caja o rendimientos objetivo de los inversionistas institucionales (en Millones de USD).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Formulación del Sistema y Demostración SPD -->
+    <section id="formulacion" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">📐</div>
+          <h2>3. Formulación Matemática del Sistema (n ≥ 4) y Propiedades SPD</h2>
+        </div>
+        <span class="badge badge-success">Verificación Formal</span>
+      </div>
+
+      <div class="grid-4" style="margin-bottom: 1.5rem;">
+        <div class="meta-item">
+          <div class="meta-label">Variable x₁ (M USD)</div>
+          <div class="meta-value">Bonos Soberanos AAA</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Renta fija de alta liquidez, mínima volatilidad y ancla de estabilidad.</p>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Variable x₂ (M USD)</div>
+          <div class="meta-value">Renta Variable Tech</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Acciones de crecimiento tecnológico, alta beta y rentabilidad esperada.</p>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Variable x₃ (M USD)</div>
+          <div class="meta-value">Commodities & Energía</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Materias primas y recursos verdes como cobertura ante presiones inflacionarias.</p>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Variable x₄ (M USD)</div>
+          <div class="meta-value">Crédito Corporativo</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Deuda privada estructurada con spread crediticio de grado de inversión.</p>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">🔍</div>
+        <div class="alert-content">
+          <h4>Demostración Formal de Propiedades de A</h4>
+          <p>
+            <strong>1. Simetría (A = Aᵀ):</strong> Puesto que la covarianza es conmutativa $\text{Cov}(R_i, R_j) = \text{Cov}(R_j, R_i)$, 
+            se cumple rigurosamente que $a_{ij} = a_{ji}$ para todo $i \neq j$.<br>
+            <strong>2. Estrictamente Definida Positiva (xᵀAx > 0, ∀x ≠ 0):</strong> Para toda cartera con asignaciones no nulas $x \neq 0$, 
+            la varianza de cartera es estrictamente positiva: $x^T \Sigma x = \text{Var}(x^T R) \ge 0$, y con la regularización $\gamma > 0$, 
+            $x^T A x = x^T \Sigma x + \gamma \|x\|_2^2 > 0$.<br>
+            <strong>3. Criterio de Sylvester:</strong> Todos los determinantes de los menores principales conductores son estrictamente positivos ($\Delta_1 > 0, \Delta_2 > 0, \dots, \Delta_n > 0$).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 y 5. Tres Escenarios y Entrada Interactiva de Datos -->
+    <section id="escenarios" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">⚡</div>
+          <h2>4 y 5. Tres Escenarios Obligatorios y Editor Interactivo de Datos</h2>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button id="btn-reset-scenario" class="btn btn-outline btn-sm">↺ Restaurar Escenario</button>
+          <button id="btn-solve-system" class="btn btn-primary btn-sm">▶ Resolver Sistema</button>
+        </div>
+      </div>
+
+      <!-- Selector de Escenarios Obligatorios -->
+      <div class="scenario-selector-grid">
+        <button class="scenario-card-btn active" data-scenario="ideal">
+          <span class="sc-badge badge badge-success">Escenario 1</span>
+          <h4>Ideal (Estable y Equilibrado)</h4>
+          <p>Baja volatilidad, correlaciones moderadas (0.15 - 0.35) y número de condición bajo κ(A) ≈ 2.27.</p>
+        </button>
+
+        <button class="scenario-card-btn" data-scenario="stress">
+          <span class="sc-badge badge badge-warning">Escenario 2</span>
+          <h4>Bajo Estrés Financiero</h4>
+          <p>Choque inflacionario, aumento de tasas, correlaciones cruzadas elevadas y demanda de liquidez b incrementada.</p>
+        </button>
+
+        <button class="scenario-card-btn" data-scenario="ill_conditioned">
+          <span class="sc-badge badge badge-danger">Escenario 3</span>
+          <h4>Mal Condicionado</h4>
+          <p>Disparidad masiva de volatilidad y multicolinealidad. κ(A) ≫ 1 (~25,718). GC zigzaguea, GCP optimiza con precondicionador.</p>
+        </button>
+      </div>
+
+      <!-- Descripción Dinámica del Escenario Activo -->
+      <div id="active-scenario-description"></div>
+
+      <!-- Parámetros de Control -->
+      <div class="grid-3" style="margin-bottom: 1.5rem;">
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">
+            PRECONDICIONADOR M
+          </label>
+          <select id="precond-select" class="matrix-input" style="text-align: left; height: 38px;">
+            <option value="jacobi">Jacobi (Diagonal - Por Defecto)</option>
+            <option value="ssor">SSOR (Symmetric Successive Over-Relaxation, ω=1.0)</option>
+            <option value="ic0">Factorización Incompleta de Cholesky IC(0)</option>
+            <option value="identity">Identidad (Sin Precondicionar - GC)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">
+            TOLERANCIA (||r_k||₂ / ||b||₂)
+          </label>
+          <input type="number" id="tol-input" class="matrix-input" value="0.000001" step="0.0000001" style="height: 38px;">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">
+            VECTOR INICIAL x₀
+          </label>
+          <div style="font-size: 0.85rem; color: var(--text-muted); padding-top: 6px;">
+            Por defecto x₀ = [0, 0, 0, 0]ᵀ (Editable en tabla)
+          </div>
+        </div>
+      </div>
+
+      <!-- Validación de Simetría y Definición Positiva -->
+      <div id="matrix-validation-box" class="alert alert-info" style="margin-bottom: 1.5rem;"></div>
+
+      <!-- Editor de Matrices y Vectores -->
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">
+            Matriz de Covarianza y Riesgo A (n × n)
+          </h4>
+          <div id="matrix-a-container" class="matrix-container"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">
+              Vector b (Metas)
+            </h4>
+            <div id="vector-b-container" class="matrix-container"></div>
+          </div>
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">
+              Vector x₀ (Inicial)
+            </h4>
+            <div id="vector-x0-container" class="matrix-container"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Solución Numérica de Referencia (Método Directo) -->
+    <section id="solucion-referencia" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">🎯</div>
+          <h2>6. Solución Numérica de Referencia (Método Directo de Cholesky)</h2>
+        </div>
+        <span class="badge badge-success">Solución Exacta de Contraste</span>
+      </div>
+
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Para matrices simétricas definidas positivas, el método directo óptimo por estabilidad numérica y costo operacional 
+        (½n³ operaciones) es la <strong>Factorización de Cholesky A = LLᵀ</strong>. La solución de referencia se calcula 
+        mediante sustitución progresiva <em>Ly = b</em> seguida de sustitución regresiva <em>Lᵀx = y</em>:
+      </p>
+
+      <div id="reference-solution-container"></div>
+    </section>
+
+    <!-- 7. Gradientes Conjugados Precondicionado (GCP) vs GC Simple -->
+    <section id="gcp-vs-gc" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">🚀</div>
+          <h2>7. Gradientes Conjugados Precondicionado (Suñagua, 2020) vs GC Simple</h2>
+        </div>
+        <span class="badge badge-primary">Convergencia Iterativa</span>
+      </div>
+
+      <div class="math-formula-box">
+        <strong>Algoritmo de Suñagua (2020):</strong> 
+        $r_0 = b - Ax_0, \quad Mz_0 = r_0, \quad p_0 = z_0$ <br>
+        Iteración $k$: $\alpha_k = \frac{r_k^T z_k}{p_k^T A p_k}, \quad x_{k+1} = x_k + \alpha_k p_k, \quad r_{k+1} = r_k - \alpha_k A p_k, \quad M z_{k+1} = r_{k+1}, \quad \beta_k = \frac{r_{k+1}^T z_{k+1}}{r_k^T z_k}, \quad p_{k+1} = z_{k+1} + \beta_k p_k$
+      </div>
+
+      <div id="gcp-results-container"></div>
+
+      <!-- Gráfico de Convergencia -->
+      <div style="margin-top: 2rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-main);">
+          Curva de Convergencia Logarítmica: GCP vs GC Simple
+        </h3>
+        <div class="chart-container">
+          <canvas id="convergence-chart-canvas"></canvas>
+          <div id="chart-fallback-container" style="display: none; height: 100%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Análisis de Errores y Condicionamiento -->
+    <section id="analisis-errores" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">📊</div>
+          <h2>8. Análisis de Errores y Número de Condición</h2>
+        </div>
+        <span class="badge badge-info">Evaluación de Exactitud</span>
+      </div>
+
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Evaluación de precisión componente a componente respecto a la solución exacta de referencia <em>x_ref</em>:
+        Error absoluto $E_{a,i} = |x_{ref,i} - x_{GCP,i}|$, Error relativo $E_{r,i} = E_{a,i}/|x_{ref,i}|$ y 
+        Error porcentual $E_{p,i} = E_{r,i} \times 100\%$.
+      </p>
+
+      <div id="error-analysis-container"></div>
+    </section>
+
+    <!-- 9. Tabla Comparativa Obligatoria (Sección 8 del documento) -->
+    <section id="tabla-comparativa" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">📋</div>
+          <h2>9. Tabla Comparativa Obligatoria de los Tres Escenarios</h2>
+        </div>
+        <button id="btn-refresh-comparative" class="btn btn-outline btn-sm">↺ Actualizar Comparativa</button>
+      </div>
+
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Comparación matricial simultánea de los tres escenarios financieros (Ideal, Bajo Estrés y Mal Condicionado) 
+        según las especificaciones obligatorias de la Sección 8 del desafío académico UMSA.
+      </p>
+
+      <div id="comparative-table-container"></div>
+    </section>
+
+    <!-- 10. Módulo de Pruebas de Software (QA) -->
+    <section id="modulo-qa" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">🧪</div>
+          <h2>10. Módulo de Pruebas de Software (Control de Calidad QA)</h2>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div id="qa-summary-badge"></div>
+          <button id="btn-run-qa-tests" class="btn btn-primary btn-sm">▶ Ejecutar Todas las Pruebas</button>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Verificación y validación de software en formato estándar de aseguramiento de calidad 
+        (Entrada, Resultado Esperado, Resultado Obtenido, Estado y Conclusión):
+      </p>
+
+      <div id="qa-test-results-container"></div>
+    </section>
+
+    <!-- 11. Conclusiones y Referencias -->
+    <section id="conclusiones" class="card section-block">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon">🎓</div>
+          <h2>11. Conclusiones Técnicas, Financieras y Referencias Bibliográficas</h2>
+        </div>
+        <span class="badge badge-primary">Síntesis Académica</span>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 2rem;">
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main);">Interpretación Técnica y Numérica</h3>
+          <ul style="font-size: 0.92rem; color: var(--text-muted); margin-left: 1.5rem; line-height: 1.8;">
+            <li><strong>Superioridad del Precondicionamiento:</strong> En el escenario mal condicionado (κ(A) ≈ 25,718), el precondicionador de Jacobi redujo el número de condición efectivo κ(M⁻¹A) a ~655, logrando una reducción superior al 97% y preservando la exactitud numérica con residuo inferior a 10⁻⁶.</li>
+            <li><strong>Convergencia Estricta:</strong> En todos los escenarios, el algoritmo de Suñagua (2020) satisfizo la cota de tolerancia requerida en <em>k ≤ n</em> iteraciones teóricas y prácticas.</li>
+            <li><strong>Robustez de Cholesky como Referencia:</strong> La solución directa confirmó que la discrepancia máxima absoluta frente a GCP fue menor a 10⁻¹², demostrando la solidez analítica del código.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main);">Interpretación Financiera</h3>
+          <ul style="font-size: 0.92rem; color: var(--text-muted); margin-left: 1.5rem; line-height: 1.8;">
+            <li><strong>Gestión ante Perturbaciones de Estrés:</strong> El shock inflacionario y salto de tasas desplazó el punto de equilibrio óptimo, reasignando mayor liquidez hacia deuda soberana AAA para mitigar el contagio de varianza tecnológica.</li>
+            <li><strong>Peligro de Multicolinealidad:</strong> Activos sintéticos fuertemente correlacionados distorsionan el condicionamiento del portafolio. El uso de precondicionadores es vital para evitar decisiones de inversión erráticas en sistemas financieros a gran escala.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-main);">Referencias Bibliográficas Principales</h3>
+        <ol style="font-size: 0.9rem; color: var(--text-muted); margin-left: 1.5rem; line-height: 1.8;">
+          <li><strong>Suñagua S., P. (2020).</strong> <em>Método de Gradientes Conjugados Precondicionado</em>. Revista Boliviana de Matemática – UMSA, 04, 2–7.</li>
+          <li><strong>Golub, G. H., &amp; Van Loan, C. F. (2013).</strong> <em>Matrix Computations</em> (4th ed.). Johns Hopkins University Press.</li>
+          <li><strong>Saad, Y. (2003).</strong> <em>Iterative Methods for Sparse Linear Systems</em> (2nd ed.). Society for Industrial and Applied Mathematics (SIAM).</li>
+          <li><strong>Markowitz, H. (1952).</strong> <em>Portfolio Selection</em>. The Journal of Finance, 7(1), 77–91.</li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Pie de Página Institucional -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        <div class="brand-text" style="margin-bottom: 0.75rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700;">Universidad Mayor de San Andrés</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Facultad de Ciencias Puras y Naturales · Carrera de Informática</p>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+          Desafío Académico Individual de Métodos Numéricos. Aplicación rigurosa del Método de Gradientes Conjugados 
+          Precondicionado (GCP) en problemas financieros de asignación de capital y optimización cuadrática de carteras.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Módulos del Sistema</h4>
+        <ul style="list-style: none; font-size: 0.85rem; line-height: 2;">
+          <li><a href="#inicio" style="color: var(--text-muted); text-decoration: none;">Inicio & Metadatos</a></li>
+          <li><a href="#caso-estudio" style="color: var(--text-muted); text-decoration: none;">Modelo Financiero</a></li>
+          <li><a href="#escenarios" style="color: var(--text-muted); text-decoration: none;">3 Escenarios Dinámicos</a></li>
+          <li><a href="#modulo-qa" style="color: var(--text-muted); text-decoration: none;">Pruebas de Software QA</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Especificaciones Técnicas</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.7;">
+          • HTML5, CSS3 Moderno, JavaScript ES6+<br>
+          • Arquitectura Cliente 100% Funcional<br>
+          • Tolerancia: 10⁻⁶ | Dimensión n ≥ 4<br>
+          • Despliegue listo para GitHub Pages / Vercel
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 UMSA - Carrera de Informática. Métodos Numéricos.</div>
+      <div>Desarrollo Académico Individual · Código Abierto</div>
+    </div>
+  </footer>
+
+  <!-- Scripts Modulares -->
+  <script src="js/matrix.js"></script>
+  <script src="js/algorithms.js"></script>
+  <script src="js/scenarios.js"></script>
+  <script src="js/qa.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
